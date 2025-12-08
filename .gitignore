@@ -1,4 +1,6 @@
 .vscode
-_pycache_
-
-venv
+__pycache__/
+*.pyc
+venv/
+.env
+.DS_Store
