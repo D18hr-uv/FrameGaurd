@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FrameGuard</title>
+
+    <!-- Import your CSS -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>FrameGuard — Deepfake Detection</h1>
+
+      <!-- Upload Form -->
+      <form id="upload-form">
+        <input type="file" id="image" accept="image/*" required />
+
+        <button type="submit" id="submitBtn">Upload & Predict</button>
+      </form>
+
+      <!-- Preview Image -->
+      <div id="preview-section" style="display: none">
+        <h3>Original Image</h3>
+        <img id="preview-img" src="" />
+      </div>
+
+      <!-- Result Section -->
+      <div id="result" style="display: none">
+        <p id="prob"></p>
+
+        <h3>Grad-CAM Heatmap</h3>
+        <img id="heatmap-img" src="" />
+
+        <button id="upload-another">Analyze Another</button>
+      </div>
+    </div>
+
+    <!-- Import JS -->
+    <script src="app.js"></script>
+  </body>
+</html>
