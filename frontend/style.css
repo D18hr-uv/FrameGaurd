@@ -1,29 +1,93 @@
+/* Reset & Base */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   padding: 0;
   font-family: "Poppins", sans-serif;
   background: linear-gradient(to right, #667eea, #764ba2);
   color: #fff;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
+
+/* Header */
+header {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
+  padding: 15px 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5em;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+nav a {
+  color: #fff;
+  text-decoration: none;
+  margin-left: 20px;
+  font-weight: 500;
+  transition: opacity 0.3s;
+}
+
+nav a:hover {
+  opacity: 0.8;
+}
+
+/* Main Content */
+main {
+  flex: 1; /* Pushes footer down */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* prevent centering vertically if content is long */
+  padding: 40px 20px;
+}
+
 .container {
+  width: 100%;
   max-width: 600px;
-  margin: 80px auto;
-  padding: 30px;
+  padding: 40px;
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
 }
+
 h1 {
-  font-size: 2em;
-  margin-bottom: 20px;
+  font-size: 2.2em;
+  margin-bottom: 10px;
+  margin-top: 0;
 }
+
+.subtitle {
+  margin-bottom: 30px;
+  font-weight: 300;
+  opacity: 0.9;
+}
+
+/* Form Elements */
 form {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 input[type="file"] {
   padding: 12px;
   border-radius: 6px;
@@ -32,9 +96,11 @@ input[type="file"] {
   color: #333;
   margin-bottom: 20px;
   cursor: pointer;
+  width: 100%;
 }
+
 button {
-  padding: 12px 25px;
+  padding: 12px 30px;
   font-size: 1em;
   font-weight: bold;
   color: white;
@@ -43,27 +109,125 @@ button {
   border-radius: 6px;
   cursor: pointer;
   transition: 0.3s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
+
 button:hover {
   background: #ff4757;
+  transform: translateY(-2px);
 }
-#result {
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Results & Images */
+#result, #preview-section {
   margin-top: 30px;
   padding: 20px;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 8px;
 }
+
 img {
   max-width: 100%;
   height: auto;
-  margin-top: 20px;
+  margin-top: 15px;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
+
 #upload-another {
-  margin-top: 20px;
-  display: none;
+  margin-top: 25px;
+  display: none; /* toggled via JS */
   background: #1dd1a1;
 }
+
 #upload-another:hover {
   background: #10ac84;
+}
+
+/* Legend Section */
+.legend-section {
+  margin-top: 25px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.legend-section h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 0.95em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #eee;
+}
+
+.legend-visual {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 0.85em;
+  font-weight: bold;
+}
+
+.gradient-bar {
+  flex: 1;
+  height: 12px;
+  margin: 0 10px;
+  border-radius: 6px;
+  /* Jet colormap approximation: Blue -> Cyan -> Yellow -> Red */
+  background: linear-gradient(to right, 
+      #0000ff, 
+      #00ffff, 
+      #ffff00, 
+      #ff0000
+  );
+}
+
+.legend-text {
+  font-size: 0.85em;
+  line-height: 1.4;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Footer */
+footer {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 20px 0;
+  margin-top: auto;
+}
+
+.footer-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-content p {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.footer-links a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.85em;
+  margin: 0 10px;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+}
+
+.footer-links a:hover {
+  opacity: 1;
 }

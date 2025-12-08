@@ -10,32 +10,75 @@
   </head>
 
   <body>
-    <div class="container">
-      <h1>FrameGuard — Deepfake Detection</h1>
-
-      <!-- Upload Form -->
-      <form id="upload-form">
-        <input type="file" id="image" accept="image/*" required />
-
-        <button type="submit" id="submitBtn">Upload & Predict</button>
-      </form>
-
-      <!-- Preview Image -->
-      <div id="preview-section" style="display: none">
-        <h3>Original Image</h3>
-        <img id="preview-img" src="" />
+    <!-- Header -->
+    <header>
+      <div class="header-content">
+        <div class="logo">FrameGuard</div>
+        <nav>
+          <a href="#">Home</a>
+          <a href="#">About</a>
+          <a href="#">GitHub</a>
+        </nav>
       </div>
+    </header>
 
-      <!-- Result Section -->
-      <div id="result" style="display: none">
-        <p id="prob"></p>
+    <main>
+      <div class="container">
+        <h1>Deepfake Detection</h1>
+        <p class="subtitle">Upload a face image to analyze for manipulation.</p>
 
-        <h3>Grad-CAM Heatmap</h3>
-        <img id="heatmap-img" src="" />
+        <!-- Upload Form -->
+        <form id="upload-form">
+          <input type="file" id="image" accept="image/*" required />
 
-        <button id="upload-another">Analyze Another</button>
+          <button type="submit" id="submitBtn">Upload & Predict</button>
+        </form>
+
+        <!-- Preview Image -->
+        <div id="preview-section" style="display: none">
+          <h3>Original Image</h3>
+          <img id="preview-img" src="" alt="Preview" />
+        </div>
+
+        <!-- Result Section -->
+        <div id="result" style="display: none">
+          <p id="prob"></p>
+
+          <h3>Grad-CAM Explainability</h3>
+          <img id="heatmap-img" src="" alt="Heatmap" />
+
+          <!-- Legend Section -->
+          <div class="legend-section">
+            <h4>How to read this heatmap:</h4>
+            
+            <div class="legend-visual">
+                <span class="label-low">Low Impact</span>
+                <div class="gradient-bar"></div>
+                <span class="label-high">High Impact</span>
+            </div>
+
+            <p class="legend-text">
+                The <strong>red/yellow</strong> regions highlight the specific features the AI focused on to determine if the image is Real or Fake. 
+                In fake images, these often correspond to manipulation artifacts.
+            </p>
+          </div>
+
+          <button id="upload-another">Analyze Another</button>
+        </div>
       </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">
+        <p>&copy; 2024 FrameGuard AI. All rights reserved.</p>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Contact</a>
+        </div>
+      </div>
+    </footer>
 
     <!-- Import JS -->
     <script src="app.js"></script>
