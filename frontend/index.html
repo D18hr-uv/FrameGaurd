@@ -3,53 +3,93 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FrameGuard</title>
+    <title>FrameGuard - Deepfake Forensics</title>
 
     <!-- Import your CSS -->
     <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   </head>
 
   <body>
+    <!-- Background Watermark -->
+    <div class="bg-watermark">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="rgba(0, 255, 255, 0.05)" stroke-width="0.3" fill="none">
+          <!-- Wireframe Face Geometry -->
+          <path d="M 30 15 C 50 5, 70 5, 80 25 C 90 45, 85 75, 60 85 C 50 90, 40 90, 30 85 C 5 75, 10 45, 20 25 Z" />
+          <path d="M 35 40 L 45 40 L 40 45 Z" />
+          <path d="M 65 40 L 55 40 L 60 45 Z" />
+          <path d="M 50 45 L 45 60 L 55 60 Z" />
+          <path d="M 40 70 Q 50 75 60 70" />
+          <!-- Polygonal mesh lines -->
+          <line x1="50" y1="5" x2="50" y2="85" />
+          <line x1="30" y1="15" x2="50" y2="45" />
+          <line x1="80" y1="25" x2="50" y2="45" />
+          <line x1="20" y1="25" x2="40" y2="45" />
+          <line x1="50" y1="45" x2="45" y2="60" />
+          <line x1="50" y1="45" x2="55" y2="60" />
+          <line x1="45" y1="60" x2="40" y2="70" />
+          <line x1="55" y1="60" x2="60" y2="70" />
+          <line x1="20" y1="25" x2="35" y2="40" />
+          <line x1="80" y1="25" x2="65" y2="40" />
+          <!-- Tech overlay circles -->
+          <circle cx="50" cy="45" r="35" stroke-dasharray="1,4" />
+          <circle cx="50" cy="45" r="45" stroke-dasharray="2,6" stroke="rgba(0, 255, 255, 0.02)" />
+        </g>
+      </svg>
+    </div>
+
     <!-- Header -->
     <header>
       <div class="header-content">
-        <div class="logo">FrameGuard</div>
+        <div class="logo">
+          <span class="logo-icon">⎔</span> FrameGuard <span class="badge">Forensics</span>
+        </div>
         <nav>
-          <a href="#">Home</a>
-          <a href="#">About</a>
-          <a href="#">GitHub</a>
+          <a href="#">Dashboard</a>
+          <a href="#">Documentation</a>
+          <a href="#">System</a>
         </nav>
       </div>
     </header>
 
     <main>
-      <div class="container">
+      <div class="container fade-in-up">
         <h1>Deepfake Detection</h1>
-        <p class="subtitle">Upload a face image to analyze for manipulation.</p>
+        <p class="subtitle">Advanced AI-powered facial manipulation analysis. Upload a face image to detect synthetic alterations with high precision.</p>
 
         <!-- Upload Form -->
         <form id="upload-form">
-          <input type="file" id="image" accept="image/*" required />
+          <div class="file-upload-wrapper">
+             <input type="file" id="image" accept="image/*" required />
+          </div>
 
-          <button type="submit" id="submitBtn">Upload & Predict</button>
+          <button type="submit" id="submitBtn" class="glow-on-hover">Initialize Scan</button>
         </form>
 
         <!-- Preview Image -->
-        <div id="preview-section" style="display: none">
-          <h3>Original Image</h3>
-          <img id="preview-img" src="" alt="Preview" />
+        <div id="preview-section" style="display: none" class="animate-section">
+          <h3>Target Image</h3>
+          <div class="image-wrapper">
+            <img id="preview-img" src="" alt="Preview" />
+            <div class="scan-line"></div>
+          </div>
         </div>
 
         <!-- Result Section -->
-        <div id="result" style="display: none">
-          <p id="prob"></p>
+        <div id="result" style="display: none" class="animate-section">
+          <div class="result-header">
+            <p id="prob"></p>
+          </div>
 
-          <h3>Grad-CAM Explainability</h3>
-          <img id="heatmap-img" src="" alt="Heatmap" />
+          <h3>Grad-CAM Analysis</h3>
+          <div class="image-wrapper">
+            <img id="heatmap-img" src="" alt="Heatmap" />
+          </div>
 
           <!-- Legend Section -->
           <div class="legend-section">
-            <h4>How to read this heatmap:</h4>
+            <h4>How to Interpret This Heatmap:</h4>
             
             <div class="legend-visual">
                 <span class="label-low">Low Impact</span>
@@ -58,12 +98,15 @@
             </div>
 
             <p class="legend-text">
-                The <strong>red/yellow</strong> regions highlight the specific features the AI focused on to determine if the image is Real or Fake. 
-                In fake images, these often correspond to manipulation artifacts.
+                The Class Activation Map (Grad-CAM) visualizes the decision-making process of our deep neural network. 
+                <br><br>
+                <strong class="text-highlight">Red and yellow regions</strong> highlight the specific facial features and localized artifacts the AI heavily focused on to classify the image. In deepfakes, these high-impact areas often pinpoint manipulation artifacts such as blending boundaries, unnatural warping, or structural inconsistencies around the eyes, nose, and mouth.
+                <br><br>
+                <strong class="text-normal">Blue and green regions</strong> represent areas the model deemed structurally normal and unmanipulated.
             </p>
           </div>
 
-          <button id="upload-another">Analyze Another</button>
+          <button id="upload-another" class="glow-on-hover secondary-btn">Analyze Another Image</button>
         </div>
       </div>
     </main>
@@ -71,11 +114,11 @@
     <!-- Footer -->
     <footer>
       <div class="footer-content">
-        <p>&copy; 2024 FrameGuard AI. All rights reserved.</p>
+        <p>&copy; 2024 FrameGuard AI Forensics. All rights reserved.</p>
         <div class="footer-links">
-          <a href="#">Privacy</a>
-          <a href="#">Terms</a>
-          <a href="#">Contact</a>
+          <a href="#">Privacy Protocol</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Support</a>
         </div>
       </div>
     </footer>
