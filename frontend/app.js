@@ -21,6 +21,11 @@ fileInput.addEventListener("change", () => {
   resultDiv.style.display = "none";
   heatmapImg.src = "";
   probDiv.textContent = "";
+  
+  const scanLine = document.querySelector(".scan-line");
+  if (scanLine) {
+    scanLine.classList.remove("active");
+  }
 });
 
 // Submit form and run prediction
@@ -38,6 +43,11 @@ form.addEventListener("submit", async function (e) {
 
   submitBtn.disabled = true;
   submitBtn.textContent = "Analyzing...";
+  
+  const scanLine = document.querySelector(".scan-line");
+  if (scanLine) {
+    scanLine.classList.add("active");
+  }
 
   try {
     const response = await fetch("http://127.0.0.1:8000/api/predict", {
@@ -66,6 +76,10 @@ form.addEventListener("submit", async function (e) {
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Upload & Predict";
+    
+    if (scanLine) {
+      scanLine.classList.remove("active");
+    }
   }
 });
 
@@ -76,4 +90,9 @@ uploadAnotherBtn.addEventListener("click", () => {
   resultDiv.style.display = "none";
   heatmapImg.src = "";
   probDiv.textContent = "";
+  
+  const scanLine = document.querySelector(".scan-line");
+  if (scanLine) {
+    scanLine.classList.remove("active");
+  }
 });

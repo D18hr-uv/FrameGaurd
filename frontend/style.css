@@ -45,8 +45,8 @@ body {
 .bg-watermark svg {
   width: 80vh; /* Adjust scale */
   height: 80vh;
-  opacity: 0.15;
-  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.2));
+  opacity: 0.35;
+  filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.4));
   animation: float-svg 10s ease-in-out infinite alternate;
 }
 
@@ -133,6 +133,8 @@ main {
   width: 100%;
   max-width: 650px;
   padding: 40px;
+  position: relative;
+  z-index: 1;
   background: var(--bg-panel);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -334,7 +336,10 @@ img {
   height: 2px;
   background: var(--accent-cyan);
   box-shadow: 0 0 10px var(--accent-cyan), 0 0 20px var(--accent-cyan);
-  opacity: 0.7;
+  opacity: 0; /* Hidden by default */
+}
+
+.scan-line.active {
   animation: scan 2.5s linear infinite;
 }
 
@@ -362,6 +367,45 @@ img {
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--accent-cyan);
+}
+
+/* Diagram Styling */
+.diagram-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.diagram-wrapper {
+  width: 100%;
+  max-width: 400px;
+}
+
+.face-diagram {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.2));
+}
+
+.diagram-labels text {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+}
+
+.indicator-lines line {
+  stroke-dasharray: 2, 2;
+  animation: dash 5s linear infinite;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -20;
+  }
 }
 
 .legend-visual {
@@ -449,10 +493,3 @@ footer {
 .footer-links a:hover {
   color: var(--accent-cyan);
 }
-
-/* Media Queries */
-@media (max-width: 768px) {
-  .container {
-    padding: 20px;
-  }
-} 
