@@ -8,4 +8,3 @@ dataset/
 multimodal_deepfake/venv/
 runs/
 __pycache__/
-*.pth
