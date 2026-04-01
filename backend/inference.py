@@ -1,5 +1,5 @@
 """
-Inference + GradCAM for Deepfake Detection
+Inference + GradCAM for Fusion Deepfake Detection (CLI)
 """
 
 import sys, os
@@ -7,7 +7,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import argparse
 from pathlib import Path
-from typing import Tuple
 
 import cv2
 import torch
@@ -16,67 +15,37 @@ import torch.nn.functional as F
 from torchvision import transforms
 from PIL import Image
 
+from backend.model.fusion_model import (
+    FusionDeepfakeModel,
+    compute_fft_spectrum,
+    spatial_transform,
+    fft_transform,
+)
 from backend.model.model import DeepfakeXceptionModel
-
-# Transform used in training
-transform = transforms.Compose([
-    transforms.Resize((299, 299)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
-])
-
-CLASS_NAMES = ['fake', 'real']
-
-
-# ---------------------------------------------------------
-#  GRAD-CAM IMPLEMENTATION
-# ---------------------------------------------------------
-class GradCAM:
-    def __init__(self, model, target_layer):
-        self.model = model
-        self.target_layer = target_layer
-
-        self.gradients = None
-        self.activations = None
-
-        # Hook to get gradients
-        target_layer.register_backward_hook(self.save_gradient)
-        target_layer.register_forward_hook(self.save_activation)
-
-    def save_gradient(self, module, grad_input, grad_output):
-        self.gradients = grad_output[0]
-
-    def save_activation(self, module, input, output):
-        self.activations = output
-
-    def generate(self, class_idx):
-        # Average gradients over H × W
-        grads = torch.mean(self.gradients, dim=[2, 3], keepdim=True)
-
-        # Weighted sum of activations
-        cam = torch.sum(grads * self.activations, dim=1).squeeze()
-
-        cam = torch.relu(cam)
-        cam -= cam.min()
-        cam /= cam.max() + 1e-8
-        cam = cam.detach().cpu().numpy()
-
-        return cam
+from backend.utils.gradcam import GradCAM, heatmap_on_image
 
 
 # ---------------------------------------------------------
 #       MODEL LOADING
 # ---------------------------------------------------------
 def load_model(model_path: str, device: torch.device):
-
-    model = DeepfakeXceptionModel()
+    """Load fusion model from checkpoint."""
+    model = FusionDeepfakeModel(num_classes=2)
     model.to(device)
 
-    ckpt = torch.load(model_path, map_location=device)
-    try:
-        model.load_state_dict(ckpt)
-    except:
-        model.load_state_dict(ckpt["state_dict"])
+    ckpt = torch.load(model_path, map_location=device, weights_only=False)
+    if isinstance(ckpt, dict) and 'state_dict' in ckpt:
+        state_dict = ckpt['state_dict']
+    else:
+        state_dict = ckpt
+
+    # Remap fc → last_linear (xception factory renames this)
+    remapped = {}
+    for k, v in state_dict.items():
+        new_key = k.replace("spatial.model.fc.", "spatial.model.last_linear.")
+        remapped[new_key] = v
+
+    model.load_state_dict(remapped)
 
     model.eval()
     return model
@@ -86,26 +55,45 @@ def load_model(model_path: str, device: torch.device):
 #   PREDICT + GRADCAM HEATMAP
 # ---------------------------------------------------------
 def predict_with_gradcam(model, pil_img, device):
+    """Run fusion prediction + GradCAM on spatial branch."""
 
-    img_tensor = transform(pil_img).unsqueeze(0).to(device)
+    # Prepare both inputs
+    spatial_input = spatial_transform(pil_img).unsqueeze(0).to(device)
+    fft_spectrum = compute_fft_spectrum(pil_img, size=224)
+    fft_input = fft_transform(fft_spectrum).unsqueeze(0).to(device)
 
-    # Get correct last conv layer
-    target_layer = model.model.conv4
-    cam = GradCAM(model, target_layer)
+    # Forward pass
+    with torch.no_grad():
+        fusion_logit = model(spatial_input, fft_input)
+        fusion_prob = torch.sigmoid(fusion_logit).item()
 
-    # Forward
-    out = model(img_tensor)
-    probs = F.softmax(out, dim=1)[0]
-    pred_idx = int(torch.argmax(probs))
+    is_fake = fusion_prob > 0.5
+    label = "fake" if is_fake else "real"
+    confidence = fusion_prob if is_fake else (1.0 - fusion_prob)
 
-    # Backward
+    # GradCAM on spatial branch
     model.zero_grad()
-    out[0, pred_idx].backward()
+    torch.set_grad_enabled(True)
 
-    # Grad-CAM heatmap
-    heatmap = cam.generate(pred_idx)
+    spatial_input_cam = spatial_transform(pil_img).unsqueeze(0).to(device).requires_grad_(True)
+    target_layer = model.spatial.model.conv4
+    cam = GradCAM(model.spatial, target_layer)
 
-    return CLASS_NAMES[pred_idx], float(probs[pred_idx]), heatmap
+    try:
+        spatial_out = model.spatial(spatial_input_cam)
+        pred_idx = int(torch.argmax(spatial_out, dim=1).item())
+        model.spatial.zero_grad()
+        spatial_out[:, pred_idx].backward(retain_graph=True)
+        heatmap = cam.generate_from_stored(pred_idx)
+    finally:
+        model.zero_grad()
+        torch.set_grad_enabled(False)
+        try:
+            cam.remove_hooks()
+        except:
+            pass
+
+    return label, confidence, heatmap
 
 
 # ---------------------------------------------------------
@@ -122,7 +110,6 @@ def run_image_mode(model_path, input_path, device, out_path=None):
     print(f"Prediction → {label} ({prob*100:.2f}%)")
 
     if out_path:
-        # Overlay CAM heatmap
         img_cv = cv2.cvtColor(np.array(pil), cv2.COLOR_RGB2BGR)
         heatmap_resized = cv2.resize(heatmap, (img_cv.shape[1], img_cv.shape[0]))
         heatmap_color = cv2.applyColorMap((heatmap_resized*255).astype(np.uint8), cv2.COLORMAP_JET)
@@ -142,7 +129,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=["image"], required=True)
     parser.add_argument("--input", required=True)
-    parser.add_argument("--model", default="backend/saved_models/best_model.pth")
+    parser.add_argument("--model", default="backend/saved_models/fusion_best_model_20260315_163859.pth")
     parser.add_argument("--out", help="save output heatmap")
 
     args = parser.parse_args()

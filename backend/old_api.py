@@ -22,7 +22,7 @@ app.add_middleware(
 
 # Load model once globally
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-MODEL_PATH = "backend/saved_models/best_model.pth"
+MODEL_PATH = "backend/saved_models/fusion_best_model_20260315_163859.pth"
 model = load_model(MODEL_PATH, device)
 
 @app.post("/predict-image")

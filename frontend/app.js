@@ -4,10 +4,23 @@ const fileInput = document.getElementById("image");
 const previewImg = document.getElementById("preview-img");
 const previewSection = document.getElementById("preview-section");
 const resultDiv = document.getElementById("result");
-const probDiv = document.getElementById("prob");
 const heatmapImg = document.getElementById("heatmap-img");
 const uploadAnotherBtn = document.getElementById("upload-another");
 const submitBtn = document.getElementById("submitBtn");
+
+// Verdict elements
+const verdictBanner = document.getElementById("verdict-banner");
+const verdictIcon = document.getElementById("verdict-icon");
+const verdictLabel = document.getElementById("verdict-label");
+const verdictConfidence = document.getElementById("verdict-confidence");
+
+// Branch meters
+const spatialValue = document.getElementById("spatial-value");
+const spatialBar = document.getElementById("spatial-bar");
+const fftValue = document.getElementById("fft-value");
+const fftBar = document.getElementById("fft-bar");
+const fusionValue = document.getElementById("fusion-value");
+const fusionBar = document.getElementById("fusion-bar");
 
 // Preview image immediately after selecting
 fileInput.addEventListener("change", () => {
@@ -20,13 +33,30 @@ fileInput.addEventListener("change", () => {
   // reset result if any
   resultDiv.style.display = "none";
   heatmapImg.src = "";
-  probDiv.textContent = "";
+  resetMeters();
   
   const scanLine = document.querySelector(".scan-line");
   if (scanLine) {
     scanLine.classList.remove("active");
   }
 });
+
+function resetMeters() {
+  spatialValue.textContent = "—";
+  fftValue.textContent = "—";
+  fusionValue.textContent = "—";
+  spatialBar.style.width = "0%";
+  fftBar.style.width = "0%";
+  fusionBar.style.width = "0%";
+  verdictBanner.className = "verdict-banner";
+}
+
+function animateMeter(barEl, valueEl, targetPercent, delay) {
+  setTimeout(() => {
+    barEl.style.width = targetPercent + "%";
+    valueEl.textContent = targetPercent.toFixed(1) + "%";
+  }, delay);
+}
 
 // Submit form and run prediction
 form.addEventListener("submit", async function (e) {
@@ -62,12 +92,29 @@ form.addEventListener("submit", async function (e) {
 
     const data = await response.json();
 
-    probDiv.innerHTML = `
-            Prediction: <b>${data.label.toUpperCase()}</b><br>
-            Confidence: <b>${(data.prob * 100).toFixed(2)}%</b>
-        `;
+    // ---- Update Verdict Banner ----
+    const isFake = data.label === "fake";
+    verdictBanner.classList.add(isFake ? "verdict-fake" : "verdict-real");
+    verdictIcon.textContent = isFake ? "⚠" : "✓";
+    verdictLabel.textContent = data.label.toUpperCase();
+    verdictConfidence.textContent = `${(data.prob * 100).toFixed(1)}% Confidence`;
 
-    heatmapImg.src = data.heatmap; // data URL returned from backend
+    // ---- Animate Branch Meters ----
+    const spatialPct = (data.spatial_fake_conf * 100);
+    const fftPct = (data.fft_fake_conf * 100);
+    const fusionPct = (data.fusion_score * 100);
+
+    animateMeter(spatialBar, spatialValue, spatialPct, 200);
+    animateMeter(fftBar, fftValue, fftPct, 400);
+    animateMeter(fusionBar, fusionValue, fusionPct, 600);
+
+    // Color the bars based on severity
+    colorBar(spatialBar, spatialPct);
+    colorBar(fftBar, fftPct);
+    colorBar(fusionBar, fusionPct);
+
+    // ---- Heatmap ----
+    heatmapImg.src = data.heatmap;
 
     resultDiv.style.display = "block";
   } catch (err) {
@@ -75,7 +122,7 @@ form.addEventListener("submit", async function (e) {
     console.error(err);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Upload & Predict";
+    submitBtn.textContent = "Initialize Scan";
     
     if (scanLine) {
       scanLine.classList.remove("active");
@@ -83,13 +130,24 @@ form.addEventListener("submit", async function (e) {
   }
 });
 
+function colorBar(barEl, pct) {
+  // Low = green, mid = yellow, high = red
+  if (pct < 35) {
+    barEl.style.background = "linear-gradient(90deg, #00ff88, #00cc6a)";
+  } else if (pct < 65) {
+    barEl.style.background = "linear-gradient(90deg, #ffaa00, #ff8800)";
+  } else {
+    barEl.style.background = "linear-gradient(90deg, #ff4466, #ff1133)";
+  }
+}
+
 // Reset to analyze another image
 uploadAnotherBtn.addEventListener("click", () => {
   form.reset();
   previewSection.style.display = "none";
   resultDiv.style.display = "none";
   heatmapImg.src = "";
-  probDiv.textContent = "";
+  resetMeters();
   
   const scanLine = document.querySelector(".scan-line");
   if (scanLine) {

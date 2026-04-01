@@ -113,6 +113,27 @@ class GradCAM:
                 pass
         self.handles = []
 
+    def generate_from_stored(self, class_idx=None):
+        """
+        Generate heatmap from already-stored activations and gradients.
+        Use this when forward+backward is performed externally.
+        """
+        gradients = self.gradients[0]     # C, Hf, Wf
+        activations = self.activations[0] # C, Hf, Wf
+
+        weights = torch.mean(gradients, dim=(1, 2))  # C
+        cam = torch.zeros(activations.shape[1:], dtype=activations.dtype, device=activations.device)
+
+        for c, w in enumerate(weights):
+            cam += w * activations[c]
+
+        cam = torch.relu(cam).cpu().numpy()
+        cam -= cam.min()
+        if cam.max() > 0:
+            cam /= cam.max()
+
+        return cam.astype(np.float32)
+
     def __call__(self, input_tensor, class_idx=None):
         """
         input_tensor: [1,C,H,W]
